@@ -8,6 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ import java.util.Optional;
 @Transactional
 public class AppUserServiceImpl implements AppUserService, UserDetailsService {
     private final AppUserRepository appUserRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -44,12 +46,20 @@ public class AppUserServiceImpl implements AppUserService, UserDetailsService {
     @Override
     public List<AppUser> saveAllUsers(List<AppUser> appUsers) {
         log.info("Saving all users: {}", appUsers);
+        appUsers.forEach(appUser -> {
+            var encodePassword = passwordEncoder.encode(appUser.getPassword());
+            appUser.setPassword(encodePassword);
+        });
+
         return appUserRepository.saveAll(appUsers);
     }
 
     @Override
     public AppUser saveUser(AppUser appUser) {
         log.info("Saving user: {}", appUser);
+        var encodePassword = passwordEncoder.encode(appUser.getPassword());
+        appUser.setPassword(encodePassword);
+
         return appUserRepository.save(appUser);
     }
 
