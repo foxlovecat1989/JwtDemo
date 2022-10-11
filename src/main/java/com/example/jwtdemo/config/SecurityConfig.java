@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,10 +31,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        CustomerAuthenticationFilter customerAuthenticationFilter =
+                new CustomerAuthenticationFilter(authenticationManagerBean(), algorithmKey);
+        customerAuthenticationFilter.setFilterProcessesUrl("/api/login");
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().anyRequest().permitAll();
-        http.addFilter(new CustomerAuthenticationFilter(authenticationManager(), algorithmKey));
+        http.authorizeRequests().antMatchers("/api/login/**").permitAll()
+                .and()
+                .authorizeRequests().antMatchers(HttpMethod.GET, "/api/v1/**").hasAnyAuthority("NORMAL")
+                .and()
+                .authorizeRequests().antMatchers(HttpMethod.POST, "/api/v1/**").hasAnyAuthority("ADMIN")
+                .and()
+                .authorizeRequests().anyRequest().authenticated();
+        http.addFilter(customerAuthenticationFilter);
     }
 
     @Override
