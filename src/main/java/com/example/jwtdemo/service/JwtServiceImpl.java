@@ -11,20 +11,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.example.jwtdemo.filter.CustomerAuthenticationFilter.TEN_MINUTES_MILLISECONDS;
 import static com.example.jwtdemo.filter.CustomerAuthorizationFilter.JWT_TOKEN_PREFIX;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -48,12 +43,7 @@ public class JwtServiceImpl implements JwtService {
                 var roles = appUser.getUserRoles().stream()
                         .map(UserRole::getRoleName)
                         .toArray(String[]::new);
-                var accessToken = JWT.create()
-                        .withSubject(appUser.getUserName())
-                        .withExpiresAt(new Date(System.currentTimeMillis() + TEN_MINUTES_MILLISECONDS))
-                        .withIssuer(request.getRequestURI())
-                        .withArrayClaim("roles", roles)
-                        .sign(algorithm);
+                String accessToken = JwtUtil.getAccessToken(request, appUser.getUserName(), roles);
                 Map<String, String> tokens = new HashMap<>();
                 tokens.put("accessToken", accessToken);
                 tokens.put("refreshToken", refreshToken);
