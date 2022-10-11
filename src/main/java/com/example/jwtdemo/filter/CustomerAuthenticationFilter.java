@@ -1,6 +1,5 @@
 package com.example.jwtdemo.filter;
 
-import com.auth0.jwt.JWT;
 import com.example.jwtdemo.util.JwtUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,6 @@ import javax.servlet.FilterChain;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,19 +52,8 @@ public class CustomerAuthenticationFilter extends UsernamePasswordAuthentication
         var roles = user.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toArray(String[]::new);
-
-        var accessToken = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + TEN_MINUTES_MILLISECONDS))
-                .withIssuer(request.getRequestURI())
-                .withArrayClaim("roles", roles)
-                .sign(algorithm);
-
-        var refreshToken = JWT.create()
-                .withSubject(user.getUsername())
-                .withExpiresAt(new Date(System.currentTimeMillis() + ONE_DAY_MILLISECONDS))
-                .withIssuer(request.getRequestURI())
-                .sign(algorithm);
+        var accessToken = JwtUtil.getAccessToken(request, user.getUsername(), roles);
+        var refreshToken = JwtUtil.getRefreshToken(request, user);
 
         Map<String, String> tokens = new HashMap<>();
         tokens.put("accessToken", accessToken);
