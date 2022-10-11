@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,17 +30,15 @@ import java.util.Optional;
 @Configuration
 @Slf4j
 public class CustomerAuthorizationFilter extends OncePerRequestFilter {
-
-    public static final String AUTHORIZATION = "authorization";
     public static final String JWT_TOKEN_PREFIX = "Bearer ";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         // 排除 authorization
-        if (StringUtils.equalsAnyIgnoreCase(request.getServletPath(), "/api/login")) {
+        if (StringUtils.equalsAnyIgnoreCase(request.getServletPath(), "/api/login", "/api/v1/token/refresh")) {
             filterChain.doFilter(request, response);
         } else {
-            var authorizationHeader = request.getHeader(AUTHORIZATION);
+            var authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             if (Optional.ofNullable(authorizationHeader).isPresent() && authorizationHeader.startsWith(JWT_TOKEN_PREFIX)) {
                 try {
                     var token = authorizationHeader.substring(JWT_TOKEN_PREFIX.length());
