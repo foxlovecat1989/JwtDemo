@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Slf4j
 public class CustomerAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
-    public static final int TEN_MINUTES_MILLISECONDS = 1 * 60 * 1000;
+    public static final int TEN_MINUTES_MILLISECONDS = 10 * 60 * 1000;
     public static final int ONE_DAY_MILLISECONDS = 24 * 60 * 60 * 1000;
     private final AuthenticationManager authenticationManager;
 
